@@ -48,7 +48,10 @@ packages' own `composer.json`.
     },
     "resolutions": {
       "ember": "1.5.1"
-    }
+    },
+    "exclude": [
+      "semantic-ui"
+    ]
   }
 }
 ```
