@@ -40,6 +40,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
         $requires    = [];
         $overrides   = [];
         $resolutions = [];
+        $excludes    = [];
 
         if( $event->isDevMode()) {
             $extra = $this->composer->getPackage()->getExtra();
@@ -60,11 +61,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
                     $requires = $this->_mergeDependencyVersions( $requires, $bower['require'] );
                 }
                 if( isset( $bower['exclude'] ) ) {
-                    foreach( $requires as $name => $version ) {
-                        if(  in_array( $name, $bower['exclude'] ) ) {
-                            unset( $requires[$name] );
-                        }
-                    }
+                    $excludes = array_merge_recursive($excludes, $bower['exclude']);
                 }
                 if( isset( $bower['overrides'] ) ) {
                     $overrides = array_merge_recursive($overrides, $bower['overrides']);
@@ -74,6 +71,13 @@ class Plugin implements PluginInterface, EventSubscriberInterface
                 }
             }
         }
+
+        foreach( $requires as $name => $version ) {
+            if(  in_array( $name, $excludes ) ) {
+                unset( $requires[$name] );
+            }
+        }
+
         if( ! $requires ) {
             $this->info("No Bower packages are required by the application or by any installed Composer package");
         }
@@ -151,7 +155,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
             file_put_contents( '.bowerrc', json_encode($config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) );
         }
         $this->write( $requires ? "Installing/updating Bower packages" : "Removing Bower packages(if any)" );
-        $cmd = "$bowerBin --allow-root install";
+        $cmd = "$bowerBin --allow-root install --force";
         passthru( $cmd, $retVar );
         if( $retVar) {
             throw new \RuntimeException( 'bower install failed' );
