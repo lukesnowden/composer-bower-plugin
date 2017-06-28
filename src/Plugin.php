@@ -37,6 +37,9 @@ class Plugin implements PluginInterface, EventSubscriberInterface
 
     public function onPostUpdate( Event $event )
     {
+
+        putenv( 'COMPOSER_IS_RUNNING=true' );
+
         $requires    = [];
         $overrides   = [];
         $resolutions = [];
